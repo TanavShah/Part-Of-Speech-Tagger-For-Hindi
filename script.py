@@ -1,6 +1,6 @@
 import csv
 
-with open('hindi_ner_formatted.csv') as csv_file:
+with open('token-tag_pairs_cleaned.csv') as csv_file:
     reader = csv.reader(csv_file)
     with open('dataset.csv', 'w') as g:
         writer = csv.writer(g)
