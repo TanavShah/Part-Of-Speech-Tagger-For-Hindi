@@ -138,23 +138,8 @@ class Tagger:
                 idx = idx + 1
                 e1 = entry[0]
                 e2 = entry[1]
-                # if(isinstance(e2, str)):
-                #     print("ERR: ", e2, "idx", idx)
-                    
                 val.append(e1)
-                prob.append(int(e2.strip()))
-                # if(isinstance(e1, int) and isinstance(e2, int)):
-                #     val.append(e1)
-                #     prob.append(e2)    
-                # else:
-                #     if(isinstance(e1, str)):
-                #         val.append(e1)
-                #     if(isinstance(e1, int)):
-                #         prob.append(e2)
-                #     if(isinstance(e2, str)):
-                #         val.append(e2)
-                #     if(isinstance(e2, int)):
-                #         prob.append(e2)        
+                prob.append(int(e2.strip()))     
 
             prob = np.array(prob).astype(np.float)
             total = np.sum(prob)
@@ -186,7 +171,7 @@ class Tagger:
         with open(self.__tag_dict_file_name, "w") as outfile:
             json.dump(self.tag_dict, outfile)
 
-    """Gets most probable tag for a given word using bayes theorm
+    """Gets most probable tag for a given word using Bayes Theorem
        P(tag|word) = P(word|tag) * P(tag) / P (word)
 
     Parameters
@@ -197,9 +182,10 @@ class Tagger:
     Returns
     ----------
     String
-        If word present in dataset returns tag
-        else returns tag according to 
-        probabilistic distribution of all the tags       
+        If word present in vocabulary(trainset) returns tag
+        If Word absent in vocabulary use Smoothing 
+        Technique and Returns tag according to 
+        probabilistic distribution of all the tags          
     """
     def get_tags_prob(self, word):
 
@@ -219,9 +205,9 @@ class Tagger:
             if(self.p_word_tag[tag].get(word) is None):
                 self.p_word_tag[tag][word] = 0
             p_tag_word[tag] = (self.p_word_tag[tag][word] * self.p_tag[tag]) / self.p_word[word]
-        
-        ans = max(p_tag_word, key=p_tag_word.get) 
 
+        ans = max(p_tag_word, key=p_tag_word.get) 
+        
         if p_tag_word[ans] == 0.0:
             if self.tags_list is None:
                     self.generate_tags_data()
@@ -292,10 +278,9 @@ class Tagger:
 print("Running")
 tagger = Tagger()
 tagger.evaluate("max")
-tagger.evaluate("weighted")
+# tagger.evaluate("weighted")
 
-tagger.generate_word_tag()
+# tagger.generate_word_tag()
 
-print(np.shape(tagger.confusion_matrix()))
 
 
