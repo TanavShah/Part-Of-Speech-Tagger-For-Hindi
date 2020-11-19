@@ -187,7 +187,19 @@ class Tagger:
             json.dump(self.tag_dict, outfile)
 
     """Gets most probable tag for a given word using bayes theorm
-        
+       P(tag|word) = P(word|tag) * P(tag) / P (word)
+
+    Parameters
+    -----------
+    word: String
+        Input word for tag prediction
+
+    Returns
+    ----------
+    String
+        If word present in dataset returns tag
+        else returns tag according to 
+        probabilistic distribution of all the tags       
     """
     def get_tags_prob(self, word):
 
@@ -233,7 +245,6 @@ class Tagger:
         else returns tag according to 
         probabilistic distribution of all the tags
     """
-    
     def get_best_tag(self, word, mode):
         tags = self.tag_dict.get(word)
 
