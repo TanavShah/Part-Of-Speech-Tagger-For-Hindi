@@ -20,7 +20,6 @@ class Tagger:
     __train_hmm_file_name = "train_set_hmm.csv"
     __test_hmm_file_name = "test_set_hmm.csv"
 
-    # {"word": {"tag1": freq ... }}
     tag_dict = None
 
     tags_list = None
@@ -38,7 +37,6 @@ class Tagger:
     no_of_unique_tags = None
     no_of_unique_words = None
 
-    # [tags][words]
     p_word_tag = None
 
     p_word = None
@@ -56,7 +54,7 @@ class Tagger:
         else:
             self.generate_dict()
 
-    def read_train_file(self):           
+    def pre_processing(self):       
         sentences = []
         tags = []
         sentence = []
@@ -74,7 +72,6 @@ class Tagger:
                     t = row[1]
                     sentence.append(w)
                     tag.append(t)
-        print (tags[0])
         sentences = sentences[1:]
         tags = tags[1:]
         assert len(sentences) == len(tags)
@@ -133,7 +130,7 @@ class Tagger:
             reader = csv.reader(trainHmm, delimiter='~')
             
             for row in reader :
-                if(row[0] == "~" or row[0] == "") :
+                if(row[0] == " " or row[0] == "") :
                     continue
 
                 if(i == 0) :
@@ -153,6 +150,8 @@ class Tagger:
             transition_matrix[j] = {}
             for k in range(23) :
                 transition_matrix[j][k] = 0
+
+        
 
         for j in range(len(d1)) :
 
@@ -174,6 +173,78 @@ class Tagger:
 
         return transition_matrix
 
+    def viterbi(self, word_seq) :
+        
+        
+        seq_length = len(word_seq)
+        
+        dp = np.zeros(shape = (22, seq_length))
+        back_track = np.zeros(shape = (22, seq_length))
+
+        # for i in range (22) :
+        #     dp[i] = np.array([])
+        #     back_track[i] = np.array([])
+        #     for j in range (seq_length):
+        #         dp[i][j] = 0
+        #         back_track[i][j] = 0
+
+
+
+        labels = self.tags_list
+        transition_matrix = self.generate_transition_probabilities()
+
+        # W1
+        for tag in range (22) :
+
+            tag_s = labels[tag]
+            word_s = word_seq[0]
+        
+            if (self.p_word_tag[tag_s].get(word_s) is None):
+                dp[tag][0] = 0
+            else :
+                dp[tag][0] = (transition_matrix[0][tag + 1])*(self.p_word_tag[tag_s][word_s])
+            # print (transition_matrix[0][tag + 1])
+            # print (self.p_word_tag[labels[tag]][word_seq[0]])
+            # print (dp[tag][0])
+
+        # W2 - WN
+        for w_idx in range(1, seq_length):
+            prev_word_s = word_seq[w_idx - 1]
+            word_s = word_seq[w_idx]
+            t_ind = 0
+            for t in labels:
+                list_t_dash = []
+                t_dash_ind = 0
+                for t_dash in labels:
+                    if (self.p_word_tag[tag_s].get(word_s) is None):
+                        list_t_dash.append(dp[t_dash_ind][w_idx - 1] * transition_matrix[t_ind + 1][t_dash_ind + 1] * self.p_tag[t])
+                    else :
+                        list_t_dash.append(dp[t_dash_ind][w_idx - 1] * transition_matrix[t_ind + 1][t_dash_ind + 1] * self.p_word_tag[t][word_s])
+                    t_dash_ind += 1
+                
+                dp[t_ind][w_idx] = max(list_t_dash)
+                back_track[t_ind][w_idx] = np.argmax(list_t_dash) 
+                t_ind += 1
+        
+        ans = np.zeros(seq_length, dtype = int)
+
+        max_val = dp[0][seq_length - 1]
+        for i in range (1, 22) :
+            if (dp[i][seq_length - 1] > max_val) :
+                max_val = dp[i][seq_length - 1]
+                ans[seq_length - 1] = i
+
+        for i in range (1, seq_length) :
+            index = seq_length - i - 1
+            ans[index] = back_track[ans[index + 1]][index]
+
+        result = []
+        for i in range (len(ans)) :
+            result.append(labels[ans[i]])
+
+        print (result)
+        return result
+        
 
     def generate_tags_data(self):
         with open(self.__tags_frequency_file_name, "r") as tagsFile:
@@ -224,10 +295,18 @@ class Tagger:
     
     def generate_dict(self):
         self.tag_dict = {}
-        with open(self.__train_file_name) as train_file:
-            reader = csv.reader(train_file)
+        with open(self.__train_hmm_file_name) as train_file:
+            reader = csv.reader(train_file, delimiter='~')
             # word, tag
+            cnt = 0
             for entry in reader:
+                if (entry[0] == " ") :
+                    continue
+
+                if(cnt == 0) :
+                    cnt += 1
+                    continue
+
                 tags = self.tag_dict.get(entry[0])
                 if tags is None:
                     tags = {}
@@ -241,5 +320,17 @@ class Tagger:
             json.dump(self.tag_dict, outfile)
 
 tagger = Tagger()
-# tagger.generate_transition_probabilities()
-tagger.read_train_file()
+
+tagger.generate_words_data()
+tagger.generate_transition_probabilities()
+tagger.generate_emmission_probabilities()
+tagger.pre_processing()
+print(tagger.tag_dict["निशब्द"])
+# print (tagger.words_list[30099])
+
+
+# print(len(tagger.p_word_tag))
+
+test = ["निशब्द","2007","मे","बनी","हिन्दी","भाषा","की","फिल्म","है","."]
+
+tagger.viterbi(test)
