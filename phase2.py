@@ -24,8 +24,8 @@ from sklearn.metrics import precision_score
 
 class Tagger:
 
-    __train_file_name = "train_set.csv"
-    __test_file_name = "test_set.csv"
+    __train_file_name = "train_set_hmm.csv"
+    __test_file_name = "test_set_hmm.csv"
     __tag_dict_file_name = "model.json"
     __tags_frequency_file_name = "tags_frequency.csv"
     __words_frequency_file_name = "words_frequency.csv"
@@ -55,6 +55,8 @@ class Tagger:
     p_word = None
 
     p_tag = None
+
+    cnt = 0
 
     def __init__(self):
         self.generate_dict()
@@ -156,9 +158,14 @@ class Tagger:
     def generate_dict(self):
         self.tag_dict = {}
         with open(self.__train_file_name) as train_file:
-            reader = csv.reader(train_file)
+            reader = csv.reader(train_file, delimiter = "~")
             # word, tag
+            next(reader)
             for entry in reader:
+		
+                if(entry[0] == "" or entry[0] == " ") :
+                    continue
+
                 tags = self.tag_dict.get(entry[0])
                 if tags is None:
                     tags = {}
@@ -212,6 +219,8 @@ class Tagger:
             if self.tags_list is None:
                     self.generate_tags_data()
             ans = np.random.choice(self.tags_list, 1, p=self.tags_prob_list)[0]
+#            ans = "NN"
+            self.cnt += 1
 
         return ans          
             
@@ -256,9 +265,13 @@ class Tagger:
         actuals = []
 
         with open(self.__test_file_name) as testFile:
-            reader = csv.reader(testFile)
+            reader = csv.reader(testFile, delimiter = "~")
             next(reader)
             for entry in reader:
+
+                if(entry[0] == "" or entry[0] == " ") :
+                    continue
+
                 # prediction1 = self.get_best_tag(entry[0], mode)
                 prediction = self.get_tags_prob(entry[0])
                 actual = entry[1]
@@ -278,6 +291,15 @@ class Tagger:
 print("Running")
 tagger = Tagger()
 tagger.evaluate("max")
+
+cf = tagger.confusion_matrix()
+
+for i in range (22) :
+    for j in range (22) :
+        print(cf[i][j], end = " ")
+    print()
+#print (tagger.cnt)
+#print(tagger.confusion_matrix())
 # tagger.evaluate("weighted")
 
 # tagger.generate_word_tag()
