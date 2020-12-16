@@ -1,10 +1,15 @@
 from decimal import Decimal as dec
 from tqdm import tqdm
+import math
+import numpy as np
 
 
 class HindiTagger:
     train_file_name = 'train_set_hmm.csv'
     test_file_name = 'test_set_hmm.csv'
+
+    # train_file_name = 'hmm_train_2.csv'
+    # test_file_name = 'hmm_test_2.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -14,6 +19,52 @@ class HindiTagger:
 
     def __init__(self):
         self.train()
+
+    def generate_stem_words(self,word):
+	    
+        suffixes = {1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा"], 2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें"], 3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं"], 4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां"], 5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"]}
+        
+#         suffixes = {
+# 1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा",u"क"],
+# 2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
+# 3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
+# 4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
+# 5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
+
+#         suffixes = {
+# 	    1: ["ो", "े", "ू", "ु", "ी", "ि", "ा"],  
+#             2: ["तृ","ान","ैत","ने","ाऊ","ाव","कर", "ाओ", "िए", "ाई", "ाए", "नी", "ना", "ते", "ीं", "ती",
+#                 "ता", "ाँ", "ां", "ों", "ें","ीय", "ति","या", "पन", "पा","ित","ीन","लु","यत","वट","लू"],     
+#             3: ["ेरा","त्व","नीय","ौनी","ौवल","ौती","ौता","ापा","वास","हास","काल","पान","न्त","ौना","सार","पोश","नाक",
+#                 "ियल","ैया", "ौटी","ावा","ाहट","िया","हार", "ाकर", "ाइए", "ाईं", "ाया", "ेगी", "वान", "बीन",
+#                 "ेगा", "ोगी", "ोगे", "ाने", "ाना", "ाते", "ाती", "ाता", "तीं", "ाओं", "ाएं", "ुओं", "ुएं", "ुआं","कला","िमा","कार",
+#                 "गार", "दान","खोर"],     
+#             4: ["ावास","कलाप","हारा","तव्य","वैया", "वाला", "ाएगी", "ाएगा", "ाओगी", "ाओगे", 
+#                 "एंगी", "ेंगी", "एंगे", "ेंगे", "ूंगी", "ूंगा", "ातीं", "नाओं", "नाएं", "ताओं", "ताएं", "ियाँ", "ियों", "ियां",
+#                 "त्वा","तव्य","कल्प","िष्ठ","जादा","क्कड़"],     
+#             5: ["ाएंगी", "ाएंगे", "ाऊंगी", "ाऊंगा", "ाइयाँ", "ाइयों", "ाइयां", "अक्कड़","तव्य:","निष्ठ"],
+# }
+
+# ret -> stem, suff, indicator
+        ret = []
+
+        for L in (5,4,3,2,1):
+            if(len(word) >= L):
+                for suff in suffixes[L]:
+                    if (word.endswith(suff) and word != suff):
+                        # ret.append(word[:-L])
+                        # ret.append(suff)
+                        # ret.append(1)
+
+                        # return ret
+                        return word[:-L]
+        
+        # ret.append(word)
+        # ret.append(" ")
+        # ret.append(0)
+
+        # return ret
+        return word                
 
     """
     Process dataset to break into sentences
@@ -32,7 +83,7 @@ class HindiTagger:
                     s_list = []
                     prev = "start"
                 else:
-                    l = line.split('~')
+                    l = line.split("~")
                     s_list.append([l[0].strip(), l[1].strip()])
                     if train_data:
                         self.dict_transition[f"{l[1].strip()}_{prev}"] = self.dict_transition.get(
@@ -43,11 +94,34 @@ class HindiTagger:
     def train(self):
 
         vakya_list = self.process_input_file(self.train_file_name, train_data=True)
+        cnt = 0
         for word_list in vakya_list:
+            if(cnt == 0) :
+                    print()
+                    for word, tag in word_list :
+                        print(word, end = " ")
+                    print()
+                    for word, tag in word_list :
+                        print(self.generate_stem_words(word)[0], end = " ")
+                    print()
+                
+            cnt += 1
+
             for word, tag in word_list:
+                stem = self.generate_stem_words(word)
+                # word = stem[0]
+                # suffix = stem[1]
+                # indicator = stem[2]
+                word = self.generate_stem_words(word)
                 self.p_word[word] = self.p_word.get(word, 0) + 1
-#                self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
+                self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
                 self.p_word_tag[f"{word}_{tag}"] = self.p_word_tag.get(f"{word}_{tag}", 0) + 1
+
+                # if(indicator == 1) :
+                #     tag = "S" + tag
+                #     self.p_word[suffix] = self.p_word.get(suffix, 0) + 1
+                #     self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
+                #     self.p_word_tag[f"{suffix}_{tag}"] = self.p_word_tag.get(f"{suffix}_{tag}", 0) + 1
 
         for tag in self.p_tag:
             self.cnt += dec(self.dict_transition.get(f"{tag}_start", 0))
@@ -130,26 +204,76 @@ class HindiTagger:
     
         """
         Rule Based Special Feature
+        -> Check NN and NNP
+        -> Check XC, JJ
+        -> Check RDP
         """
 
         SYM = ['.', ',', '-', '"', '!', '/']
 
+        cnt = 0
+
         for vakya in tqdm(self.process_input_file(self.test_file_name)):
             word_count += len(vakya)
-            words = [shabd[0] for shabd in vakya]
+            # words = []
+            # index = np.zeros(2*len(vakya))
+            # position = 0
+            # for shabd in vakya :
+            #     stem = self.generate_stem_words(shabd[0])
+            #     words.append(stem[0])
+            #     if (stem[2] == 1) :
+            #         position += 1
+            #         index[position] = 1
+            #         words.append(stem[1])
+
+            #     position += 1
+
+            words = [self.generate_stem_words(shabd[0])[0] for shabd in vakya]
+
+            if(cnt == 0) :
+                print()
+                for w in vakya :
+                    print(w[0], end = " ")
+                print()
+                for w in words :
+                    print(w, end = " ")
+                    # print(w)
+                print()
+
+                print(len(vakya), len(words))
+                
+
             predicted_tags = self.VITERBI(words)
+            word_no = -1
+            # for i in range(len(words)):
             for i in range(len(vakya)):
+                # if(index[i]) :
+                #     continue
+
+                word_no += 1
+
                 tag_predicted = predicted_tags[i]
-                if(vakya[i][0].isnumeric()) :
+                if(vakya[word_no][0].isnumeric()) :
                     tag_predicted = "QC"
 
                 for j in SYM :
-                    if(vakya[i][0] == j) :
+                    if(vakya[word_no][0] == j) :
                         tag_predicted = "SYM"
                         break
-		
-                tag = vakya[i][1]
+
+                if "-" in vakya[word_no][0] :
+                    tag_predicted = "RDP"
+
+                if(cnt == 0) :
+                    print (tag_predicted, end = " ")
+
+                tag = vakya[word_no][1]
                 cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
+            
+            cnt += 1
+            # break
+
+        print()
 
 
         """
@@ -215,6 +339,10 @@ class HindiTagger:
         print("Confusion Matrix : ")
         for i in range(len(cm)) :
             for j in range(len(cm[0])) :
+                leng = 0
+                if(cm[i][j] != 0) :
+                    leng = int(math.log10(cm[i][j]))
+                print((4 - leng)*" ", end = "")
                 print(cm[i][j], end = " ")
             print()
 
@@ -256,6 +384,8 @@ class HindiTagger:
         print ("Precision : ", macro_precision)
         print ("F-measure : ", macro_f_score)
 
+        # print(self.generate_stem_words("लाल-वाल"))
+
 
     def predict(self):
         self.hmm_bi_gram()
@@ -263,28 +393,28 @@ class HindiTagger:
 
 def main():
     tagger = HindiTagger()
-    tagger.p_tag["NN"] = 94664
-    tagger.p_tag["PSP"] = 66765
-    tagger.p_tag["SYM"] = 38376
-    tagger.p_tag["JJ"] = 35687
-    tagger.p_tag["VM"] = 31352
-    tagger.p_tag["XC"] = 26955
-    tagger.p_tag["NNP"] = 26780
-    tagger.p_tag["QC"] = 20651
-    tagger.p_tag["VAUX"] = 14934
-    tagger.p_tag["PRP"] = 12614
-    tagger.p_tag["CC"] = 9258
-    tagger.p_tag["RP"] = 3925
-    tagger.p_tag["DEM"] = 3435
-    tagger.p_tag["NST"] = 3151
-    tagger.p_tag["QF"] = 2146
-    tagger.p_tag["RB"] = 1042
-    tagger.p_tag["QO"] = 937
-    tagger.p_tag["INTF"] = 895
-    tagger.p_tag["NEG"] = 580
-    tagger.p_tag["RDP"] = 439
-    tagger.p_tag["WQ"] = 81
-    tagger.p_tag["INJ"] = 5
+    # tagger.p_tag["NN"] = 94664
+    # tagger.p_tag["PSP"] = 66765
+    # tagger.p_tag["SYM"] = 38376
+    # tagger.p_tag["JJ"] = 35687
+    # tagger.p_tag["VM"] = 31352
+    # tagger.p_tag["XC"] = 26955
+    # tagger.p_tag["NNP"] = 26780
+    # tagger.p_tag["QC"] = 20651
+    # tagger.p_tag["VAUX"] = 14934
+    # tagger.p_tag["PRP"] = 12614
+    # tagger.p_tag["CC"] = 9258
+    # tagger.p_tag["RP"] = 3925
+    # tagger.p_tag["DEM"] = 3435
+    # tagger.p_tag["NST"] = 3151
+    # tagger.p_tag["QF"] = 2146
+    # tagger.p_tag["RB"] = 1042
+    # tagger.p_tag["QO"] = 937
+    # tagger.p_tag["INTF"] = 895
+    # tagger.p_tag["NEG"] = 580
+    # tagger.p_tag["RDP"] = 439
+    # tagger.p_tag["WQ"] = 81
+    # tagger.p_tag["INJ"] = 5
 
 
 
