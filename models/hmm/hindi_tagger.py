@@ -1,9 +1,10 @@
 from decimal import Decimal as dec
-
+from pathlib import Path
+from tqdm import tqdm
 
 class HindiTagger:
-    train_file_name = '../../dataset/hmm/train_set_hmm.csv'
-    test_file_name = '../../dataset/hmm/test_set_hmm.csv'
+    train_file_name = Path(__file__).parent / '../../dataset/hmm/hmm_train_2.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/hmm/hmm_test_2.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -49,9 +50,14 @@ class HindiTagger:
 
     def transition_prob(self, tag, prev_tag):
         if prev_tag == "start":
-            return (dec(self.dict_transition.get(f"{tag}_{prev_tag}", 0))) / self.cnt
+            return (dec(self.dict_transition.get(f"{tag}_{prev_tag}", 0)) + dec(1)) / (self.cnt + dec(len(self.dict_transition)))
         else:
-            return (dec(self.dict_transition.get(f"{tag}_{prev_tag}", 0))) / dec(self.p_tag.get(prev_tag, 0))
+            return (dec(self.dict_transition.get(f"{tag}_{prev_tag}", 0)) + dec(1)) / (dec(self.p_tag.get(prev_tag, 0)) + dec(len(self.dict_transition)))
+
+
+    """
+    Smmothing for new words
+    """
 
     def emission_prob(self, word, tag):
         return (dec(self.p_word_tag.get(f"{word}_{tag}", 0)) + dec(1)) / (
@@ -112,7 +118,7 @@ class HindiTagger:
 
         word_count = 0
 
-        for vakya in self.process_input_file(self.test_file_name):
+        for vakya in tqdm(self.process_input_file(self.test_file_name)):
             word_count += len(vakya)
             words = [shabd[0] for shabd in vakya]
             predicted_tags = self.VITERBI(words)
