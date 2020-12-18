@@ -175,6 +175,9 @@ class HindiTagger:
 
         word_count = 0
         sentence_count = 0
+
+        # SYM = ['।','.', ',', '-', '"', '!', '/']
+
         for vakya in tqdm(self.process_input_file(self.test_file_name)):
             word_count += len(vakya)
             words = [shabd[0] for shabd in vakya]
@@ -188,6 +191,17 @@ class HindiTagger:
             predicted_tags = self.VITERBI(words)
             for i in range(len(vakya)):
                 tag_predicted = predicted_tags[i]
+                # if(vakya[i][0].isnumeric()) :
+                #     tag_predicted = "QCC"
+
+                # for j in SYM :
+                #     if(vakya[i][0] == j) :
+                #         tag_predicted = "SYM"
+                #         break
+
+                # if "-" in vakya[i][0] :
+                #     tag_predicted = "RDP"
+
                 tag = vakya[i][1]
                 cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
 
@@ -205,19 +219,19 @@ class HindiTagger:
         print(pred_actual, word_count)
         print("Test Accuracy : ", pred_actual/word_count)
         print()
-        print("Confusion Matrix : ")
-        for i in range(len(cm)) :
-            print(tags_list[i], end = "")
-            print((5 - len(tags_list[i]))*" ", end = "")
-            for j in range(len(cm[0])) :
-                leng = 0
-                if(cm[i][j] != 0) :
-                    leng = int(math.log10(cm[i][j]))
-                print((4 - leng)*" ", end = "")
-                print(cm[i][j], end = " ")
-            print()
+        # print("Confusion Matrix : ")
+        # for i in range(len(cm)) :
+        #     print(tags_list[i], end = "")
+        #     print((5 - len(tags_list[i]))*" ", end = "")
+        #     for j in range(len(cm[0])) :
+        #         leng = 0
+        #         if(cm[i][j] != 0) :
+        #             leng = int(math.log10(cm[i][j]))
+        #         print((4 - leng)*" ", end = "")
+        #         print(cm[i][j], end = " ")
+        #     print()
 
-        print()
+        # print()
 
     def predict(self):
         self.hmm_bi_gram()

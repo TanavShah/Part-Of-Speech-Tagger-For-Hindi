@@ -1,0 +1,27 @@
+Accuracy Table (Train Accuracy, Dev Accuracy, Test Accuracy): (Percentage + Absolute)
+    Naive Bayes : 
+    
+    Vanilla HMM Bi-gram with Viterbi :
+    HMM Bi-gram with Viterbi complete stemming :
+    HMM Bi-gram with Viterbi merge stemming - Amish:
+    HMM Bi-gram with merge Viterbi stemming - Tanav:
+    
+    Vanilla TnT:
+    TnT with Stemming :
+    Tnt with Merge stemming:
+    Tnt with Merge Viterbi stemming:
+
+Results of comparison (1. HMM normal and final, 2. TnT normal and final) :
+    Heat Map
+    Confusion Matrix
+    Macro/micro F-Score -> histogram
+    Macro/micro Recall -> histogram
+    Macro/micro Precision -> histogram
+
+Dataset Related :
+    Tags - frequency -> histogram
+
+Stemming Related :
+    Suffix - frequency -> histogram
+
+    
