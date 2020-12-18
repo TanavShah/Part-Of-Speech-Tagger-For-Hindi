@@ -1,10 +1,11 @@
 from decimal import Decimal as dec
 from pathlib import Path
 from tqdm import tqdm
+from nltk.tag import tnt 
 
 class HindiTagger:
-    train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
+    train_file_name = Path(__file__).parent / '../../dataset/hmm/hmm_train_2.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/hmm/hmm_test_2.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -12,20 +13,21 @@ class HindiTagger:
     dict_transition = {}
     cnt = 0
 
-    def __init__(self):
-        self.train()
 
-    def generate_stem_words(self, word):
-        
-        suffixes = {1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा"], 2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें"], 3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं"], 4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां"], 5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"]}
-
-        for L in (5,4,3,2,1):
-            if(len(word) >= L):
-                for suf in suffixes[L]:
-                    if(word.endswith(suf) and word!=suf):
-                        return word[:-L]
-
-        return word
+    def data_tuples(self, file_name):
+        vakya_list = []
+        with open(file_name) as inputFile:
+            s_list = []
+            for idx, line in enumerate(inputFile):
+                if idx == 0:
+                    continue
+                if line.strip() == "~":
+                    vakya_list.append(s_list)
+                    s_list = []
+                else:
+                    l = line.split('~')
+                    s_list.append((l[0].strip(), l[1].strip()))            
+        return vakya_list
 
 
     def process_input_file(self, file_name, train_data=False):
@@ -52,22 +54,8 @@ class HindiTagger:
     def train(self):
 
         vakya_list = self.process_input_file(self.train_file_name, train_data=True)
-        count = 0
         for word_list in vakya_list:
-            if(count==0):
-                print()
-                for word, tag in word_list:
-                    print(word, end = " ")
-                print()
-                for word, tag in word_list:
-                    print(self.generate_stem_words(word), end = " ")
-                print()
-
-            count+=1
-
-
             for word, tag in word_list:
-                word = self.generate_stem_words(word)
                 self.p_word[word] = self.p_word.get(word, 0) + 1
                 self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
                 self.p_word_tag[f"{word}_{tag}"] = self.p_word_tag.get(f"{word}_{tag}", 0) + 1
@@ -83,7 +71,7 @@ class HindiTagger:
 
 
     """
-    Smoothing for new words
+    Smmothing for new words
     """
 
     def emission_prob(self, word, tag):
@@ -144,24 +132,15 @@ class HindiTagger:
             cm.append(tnt)
 
         word_count = 0
-        sentence_count = 0
+
         for vakya in tqdm(self.process_input_file(self.test_file_name)):
             word_count += len(vakya)
-            words = [self.generate_stem_words(shabd[0]) for shabd in vakya]
-
-            if(sentence_count < 5):
-                print(sentence_count)
-                print(vakya)
-                print(words)
-                print("--------------")
-
+            words = [shabd[0] for shabd in vakya]
             predicted_tags = self.VITERBI(words)
             for i in range(len(vakya)):
                 tag_predicted = predicted_tags[i]
                 tag = vakya[i][1]
                 cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
-
-            sentence_count += 1    
 
         pred_actual = 0
         for i in range(len(inner_p_tag)):
@@ -176,8 +155,17 @@ class HindiTagger:
 
 def main():
     tagger = HindiTagger()
-    tagger.predict()
+    # tagger.predict()
 
+    train_data = tagger.data_tuples(tagger.train_file_name)
+    test_data = tagger.data_tuples(tagger.test_file_name)
+
+    tnt_tagging = tnt.TnT()
+    tnt_tagging.train(train_data)
+
+    acc = tnt_tagging.evaluate(test_data)
+
+    print(acc)
 
 if __name__ == "__main__":
     main()

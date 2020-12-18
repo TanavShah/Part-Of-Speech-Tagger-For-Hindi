@@ -1,10 +1,11 @@
 from decimal import Decimal as dec
-from pathlib import Path
 from tqdm import tqdm
 
+from pathlib import Path
+
 class HindiTagger:
-    train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
+    train_file_name = Path(__file__).parent / '../../dataset/hmm/hmm_train_2.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/hmm/hmm_test_2.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -15,18 +16,9 @@ class HindiTagger:
     def __init__(self):
         self.train()
 
-    def generate_stem_words(self, word):
-        
-        suffixes = {1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा"], 2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें"], 3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं"], 4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां"], 5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"]}
-
-        for L in (5,4,3,2,1):
-            if(len(word) >= L):
-                for suf in suffixes[L]:
-                    if(word.endswith(suf) and word!=suf):
-                        return word[:-L]
-
-        return word
-
+    """
+    Process dataset to break into sentences
+    """
 
     def process_input_file(self, file_name, train_data=False):
         vakya_list = []
@@ -52,24 +44,10 @@ class HindiTagger:
     def train(self):
 
         vakya_list = self.process_input_file(self.train_file_name, train_data=True)
-        count = 0
         for word_list in vakya_list:
-            if(count==0):
-                print()
-                for word, tag in word_list:
-                    print(word, end = " ")
-                print()
-                for word, tag in word_list:
-                    print(self.generate_stem_words(word), end = " ")
-                print()
-
-            count+=1
-
-
-            for word, tag in word_list:
-                word = self.generate_stem_words(word)
+            for word, tag in word_list:                
                 self.p_word[word] = self.p_word.get(word, 0) + 1
-                self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
+#                self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
                 self.p_word_tag[f"{word}_{tag}"] = self.p_word_tag.get(f"{word}_{tag}", 0) + 1
 
         for tag in self.p_tag:
@@ -82,13 +60,18 @@ class HindiTagger:
             return (dec(self.dict_transition.get(f"{tag}_{prev_tag}", 0)) + dec(1)) / (dec(self.p_tag.get(prev_tag, 0)) + dec(len(self.dict_transition)))
 
 
+
+
+
     """
-    Smoothing for new words
+    Smmothing for new words
     """
+
 
     def emission_prob(self, word, tag):
         return (dec(self.p_word_tag.get(f"{word}_{tag}", 0)) + dec(1)) / (
                 dec(self.p_tag.get(tag, 0)) + dec(len(self.p_tag)))
+
 
     def VITERBI(self, vakya):
         viterbi_table = []
@@ -144,31 +127,145 @@ class HindiTagger:
             cm.append(tnt)
 
         word_count = 0
-        sentence_count = 0
+
+    
+        """
+        Rule Based Special Feature
+        """
+
+        SYM = ['.', ',', '-', '"', '!', '/']
+
         for vakya in tqdm(self.process_input_file(self.test_file_name)):
             word_count += len(vakya)
-            words = [self.generate_stem_words(shabd[0]) for shabd in vakya]
-
-            if(sentence_count < 5):
-                print(sentence_count)
-                print(vakya)
-                print(words)
-                print("--------------")
+            words = [shabd[0] for shabd in vakya]
 
             predicted_tags = self.VITERBI(words)
+            predicted_tags_1 = self.VITERBI_1(words)
+            predicted_tags_2 = self.VITERBI_2(root(words))
+                
+
+            for word in words:
+                if(p_word_1.find(word) != end):
+                    pick from tags_2
+
             for i in range(len(vakya)):
                 tag_predicted = predicted_tags[i]
+                if(vakya[i][0].isnumeric()) :
+                    tag_predicted = "QC"
+
+                for j in SYM :
+                    if(vakya[i][0] == j) :
+                        tag_predicted = "SYM"
+                        break
+		
                 tag = vakya[i][1]
                 cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
 
-            sentence_count += 1    
+
+        """
+        Accuracy Measures
+        """
+
+        recall = []
+        precision = []
+        f_score = []
 
         pred_actual = 0
         for i in range(len(inner_p_tag)):
             pred_actual += cm[i][i]
 
-        print(pred_actual, word_count)
-        print(cm)
+        true_positive = 0
+        false_negative = 0
+        false_positive = 0
+        total_true_positive = 0
+        total_false_positive = 0
+        total_false_negative = 0
+
+        total_recall = 0
+        total_precision = 0
+
+        for i in range(len(inner_p_tag)):
+            true_positive = cm[i][i]
+            false_positive = 0
+            false_negative = 0
+
+            for j in range(len(inner_p_tag)):
+                if(i == j) :
+                    continue
+
+                false_negative += cm[i][j]
+                false_positive += cm[j][i]
+
+            total_true_positive += true_positive
+            total_false_positive += false_positive
+            total_false_negative += false_negative
+
+            if(true_positive == 0) :
+                recall.append(0)
+                precision.append(0)
+                f_score.append(0)
+            else :
+                recall.append(true_positive/(true_positive + false_negative))
+                precision.append(true_positive/(true_positive + false_positive))
+                f_score.append((2*recall[i]*precision[i])/(recall[i] + precision[i]))
+            
+            total_recall += recall[i]
+            total_precision += precision[i]
+
+        micro_precision = total_true_positive/(total_true_positive + total_false_positive)
+        micro_recall = total_true_positive/(total_true_positive + total_false_negative)
+        micro_f_score = ((2*micro_precision*micro_recall)/(micro_precision + micro_recall))
+
+        macro_precision = total_precision/22
+        macro_recall = total_recall/22
+        macro_f_score = ((2*macro_precision*macro_recall)/(macro_precision + macro_recall))
+
+        print("Test Accuracy : ", pred_actual/word_count)
+        print()
+        print("Confusion Matrix : ")
+        for i in range(len(cm)) :
+            for j in range(len(cm[0])) :
+                print(cm[i][j], end = " ")
+            print()
+
+        print()
+
+        print ("Recall for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", recall[cnt])
+            cnt += 1
+	
+        print()
+
+        print ("Precision for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", precision[cnt])
+            cnt += 1
+
+        print()
+
+        print ("F-measure for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", f_score[cnt])
+            cnt += 1
+
+        print()
+
+        print ("Micro Measures : ")
+        print ("Recall : ", micro_recall)
+        print ("Precision : ", micro_precision)
+        print ("F-measure : ", micro_f_score)
+
+        print()
+
+        print ("Macro Measures : ")
+        print ("Recall : ", macro_recall)
+        print ("Precision : ", macro_precision)
+        print ("F-measure : ", macro_f_score)
+
 
     def predict(self):
         self.hmm_bi_gram()
@@ -178,6 +275,14 @@ def main():
     tagger = HindiTagger()
     tagger.predict()
 
+    input_sentence = "सलेमपुर तेरा बांगर कन्नौज , कन्नौज , उत्तर प्रदेश स्थित एक गांव है ."
+    vakya = []
+
+    vakya = input_sentence.split(" ")
+    
+    print (vakya)
+
+    print(tagger.VITERBI(vakya))
 
 if __name__ == "__main__":
     main()

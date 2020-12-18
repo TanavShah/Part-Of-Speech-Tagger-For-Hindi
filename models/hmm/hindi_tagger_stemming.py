@@ -1,32 +1,65 @@
 from decimal import Decimal as dec
 from pathlib import Path
 from tqdm import tqdm
+import csv
 
 class HindiTagger:
     train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/stemming/dev_set.csv'
 
     p_word_tag = {}
     p_word = {}
     p_tag = {}
     dict_transition = {}
     cnt = 0
-
+    d1 = dict() 
+    d2 = dict()
     def __init__(self):
         self.train()
 
     def generate_stem_words(self, word):
         
-        suffixes = {1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा"], 2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें"], 3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं"], 4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां"], 5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"]}
+        suffixes = {
+            1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा",u"क"],
+            2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
+            3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
+            4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
+            5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
 
         for L in (5,4,3,2,1):
             if(len(word) >= L):
                 for suf in suffixes[L]:
                     if(word.endswith(suf) and word!=suf):
+                        if(suf in self.d1):
+                            self.d1[suf]+=1
+                        elif(suf not in self.d1):
+                            self.d1[suf] = 1   
+                        if(suf in self.d2):
+                            self.d2[suf].append(word)    
+                        elif(suf not in self.d2):
+                            self.d2.setdefault(suf,[])
+                            self.d2[suf].append(word)
                         return word[:-L]
 
         return word
 
+    def get_suf_freq(self):
+        with open('suf_freq.csv', 'w') as f:
+            writer = csv.writer(f)
+            for key, value in self.d1.items():
+                new_row = [key, value]
+                writer.writerow(new_row)
+    
+    def get_word_suf(self):
+        with open('word_suf.csv', 'w') as f:
+            writer = csv.writer(f)
+            for key, value in self.d2.items():
+                vset = set(value)
+                counts = []
+                for     w in vset:
+                    counts.append([w, value.count(w)])    
+                new_row = [key, counts]
+                writer.writerow(new_row)
 
     def process_input_file(self, file_name, train_data=False):
         vakya_list = []
@@ -177,6 +210,8 @@ class HindiTagger:
 def main():
     tagger = HindiTagger()
     tagger.predict()
+    tagger.get_suf_freq()
+    tagger.get_word_suf()
 
 
 if __name__ == "__main__":
