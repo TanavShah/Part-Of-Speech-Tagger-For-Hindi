@@ -21,12 +21,27 @@ class HindiTagger:
 
     def generate_stem_words(self, word):
         
+        # suffixes = {
+        #     1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा",u"क"],
+        #     2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
+        #     3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
+        #     4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
+        #     5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
+
+        # suffixes = {
+        #     1: [u"ो",u"ू",u"ु",u"ी",u"ि",u"ा"],
+        #     2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
+        #     3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
+        #     4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
+        #     5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
+
         suffixes = {
-            1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा",u"क"],
-            2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
-            3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
-            4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
-            5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
+            1: ["ो", "े", "ू", "ु", "ी", "ि", "ा"],
+            2: ["कर", "ाओ", "िए", "ाई", "ाए", "ने", "नी", "ना", "ते", "ीं", "ती", "ता", "ाँ", "ां", "ों", "ें"],
+            3: ["ाकर", "ाइए", "ाईं", "ाया", "ेगी", "ेगा", "ोगी", "ोगे", "ाने", "ाना", "ाते", "ाती", "ाता", "तीं", "ाओं", "ाएं", "ुओं", "ुएं", "ुआं"],
+            4: ["ाएगी", "ाएगा", "ाओगी", "ाओगे", "एंगी", "ेंगी", "एंगे", "ेंगे", "ूंगी", "ूंगा", "ातीं", "नाओं", "नाएं", "ताओं", "ताएं", "ियाँ", "ियों", "ियां"],
+            5: ["ाएंगी", "ाएंगे", "ाऊंगी", "ाऊंगा", "ाइयाँ", "ाइयों", "ाइयां"]
+        }
 
         for L in (5,4,3,2,1):
             if(len(word) >= L):
@@ -219,10 +234,82 @@ class HindiTagger:
         print(pred_actual, word_count)
         print("Test Accuracy : ", pred_actual/word_count)
         print()
+        print("Confusion Matrix : ")
+        for i in range(len(cm)) :
+            print(tags_list[i], end = "")
+            print((5 - len(tags_list[i]))*" ", end = "")
+            for j in range(len(cm[0])) :
+                leng = 0
+                if(cm[i][j] != 0) :
+                    leng = int(math.log10(cm[i][j]))
+                print((4 - leng)*" ", end = "")
+                print(cm[i][j], end = " ")
+            print()
+
+        print()
+
+        """
+        Accuracy Measures
+        """
+
+        recall = []
+        precision = []
+        f_score = []
+
+        pred_actual = 0
+        for i in range(len(inner_p_tag)):
+            pred_actual += cm[i][i]
+
+        true_positive = 0
+        false_negative = 0
+        false_positive = 0
+        total_true_positive = 0
+        total_false_positive = 0
+        total_false_negative = 0
+
+        total_recall = 0
+        total_precision = 0
+
+        for i in range(len(inner_p_tag)):
+            true_positive = cm[i][i]
+            false_positive = 0
+            false_negative = 0
+
+            for j in range(len(inner_p_tag)):
+                if(i == j) :
+                    continue
+
+                false_negative += cm[i][j]
+                false_positive += cm[j][i]
+
+            total_true_positive += true_positive
+            total_false_positive += false_positive
+            total_false_negative += false_negative
+
+            if(true_positive == 0) :
+                recall.append(0)
+                precision.append(0)
+                f_score.append(0)
+            else :
+                recall.append(true_positive/(true_positive + false_negative))
+                precision.append(true_positive/(true_positive + false_positive))
+                f_score.append((2*recall[i]*precision[i])/(recall[i] + precision[i]))
+            
+            total_recall += recall[i]
+            total_precision += precision[i]
+
+        micro_precision = total_true_positive/(total_true_positive + total_false_positive)
+        micro_recall = total_true_positive/(total_true_positive + total_false_negative)
+        micro_f_score = ((2*micro_precision*micro_recall)/(micro_precision + micro_recall))
+
+        macro_precision = total_precision/31
+        macro_recall = total_recall/31
+        macro_f_score = ((2*macro_precision*macro_recall)/(macro_precision + macro_recall))
+
+        # print("Test Accuracy : ", pred_actual/word_count)
+        # print()
         # print("Confusion Matrix : ")
         # for i in range(len(cm)) :
-        #     print(tags_list[i], end = "")
-        #     print((5 - len(tags_list[i]))*" ", end = "")
         #     for j in range(len(cm[0])) :
         #         leng = 0
         #         if(cm[i][j] != 0) :
@@ -232,6 +319,42 @@ class HindiTagger:
         #     print()
 
         # print()
+
+        print ("Recall for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", recall[cnt])
+            cnt += 1
+	
+        print()
+
+        print ("Precision for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", precision[cnt])
+            cnt += 1
+
+        print()
+
+        print ("F-measure for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", f_score[cnt])
+            cnt += 1
+
+        print()
+
+        print ("Micro Measures : ")
+        print ("Recall : ", micro_recall)
+        print ("Precision : ", micro_precision)
+        print ("F-measure : ", micro_f_score)
+
+        print()
+
+        print ("Macro Measures : ")
+        print ("Recall : ", macro_recall)
+        print ("Precision : ", macro_precision)
+        print ("F-measure : ", macro_f_score)
 
     def predict(self):
         self.hmm_bi_gram()

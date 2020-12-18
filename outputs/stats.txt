@@ -9,19 +9,39 @@ Accuracy Table (Train Accuracy, Dev Accuracy, Test Accuracy): (Percentage + Abso
     Vanilla TnT:
     TnT with Stemming :
     Tnt with Merge stemming:
-    Tnt with Merge Viterbi stemming:
 
 Results of comparison (1. HMM normal and final, 2. TnT normal and final) :
     Heat Map
-    Confusion Matrix
-    Macro/micro F-Score -> histogram
-    Macro/micro Recall -> histogram
-    Macro/micro Precision -> histogram
+    Macro/micro/per tag F-Score -> histogram        
+        hmm normal vs all
 
 Dataset Related :
     Tags - frequency -> histogram
 
 Stemming Related :
     Suffix - frequency -> histogram
+
+
+Table of Contents :
+
+    Abstract
+    Introduction
+    The Dataset
+    Naive Bayes
+    
+    HMM + Viterbi
+        * without stemming
+    Stemming
+        * with only stemming
+        * with merge
+        * with stemming for unkown word in Viterbi
+    
+    TNT 
+        * without stemming
+        * with only stemming
+        * with merge
+    Results
+    References
+
 
     
