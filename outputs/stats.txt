@@ -24,24 +24,27 @@ Stemming Related :
 
 Table of Contents :
 
-    Abstract
-    Introduction
-    The Dataset
-    Naive Bayes
+    Abstract - Vinay
+    Introduction - Vinay
+    The Dataset - Vinay
+    Naive Bayes - Vinay
     
-    HMM + Viterbi
-        * without stemming
+    HMM + Viterbi - Tanav
+        * without stemming - Tanav
+
     Stemming
-        * with only stemming
-        * with merge
-        * with stemming for unkown word in Viterbi
+        * Need for stemming - Amish
+        * Suffix Tags - Tanav
+        * with only stemming - Amish
+        * with merge - Amish
+        * with stemming for unkown word in Viterbi - Tanav
     
-    TNT 
-        * without stemming
-        * with only stemming
-        * with merge
-    Results
-    References
+    TNT  - Amish
+        * without stemming - Amish
+        * with only stemming - Amish
+        * with merge - Amish
+    Results - Vinay
+    References - Vinay
 
 
     
