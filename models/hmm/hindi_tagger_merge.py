@@ -1,10 +1,14 @@
+import sys
+sys.path.insert(0, '.')
+
 from decimal import Decimal as dec
 from pathlib import Path
 from tqdm import tqdm
+from hindi_tagger_viterbi_merge import HindiTagger as HindiTaggerViterbiMerge
 
 class HindiTagger:
     train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/stemming/dev_set.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -140,24 +144,6 @@ class HindiTagger:
         return seq
 
     def hmm_bi_gram(self, vakya):
-        inner_p_tag = {}
-        index = 0
-        for key in self.p_tag.keys():
-            inner_p_tag[key] = index
-            index += 1
-
-        cm = []
-
-        for tag_dict_index in range(len(inner_p_tag.keys())):
-            tnt = []
-            for j in range(index):
-                tnt.append(0)
-            cm.append(tnt)
-
-        word_count = 0
-        sentence_count = 0
-        
-        word_count += len(vakya)
         if(self.stem is True):
             words = [self.generate_stem_words(shabd[0]) for shabd in vakya]
         else:                
@@ -173,7 +159,8 @@ class HindiTagger:
 def main():
     input_sentence = "सलेमपुर तेरा बांगर कन्नौज , कन्नौज , उत्तर प्रदेश स्थित एक गांव है ."
     
-    tagger = HindiTagger(stem=False)
+    # tagger = HindiTagger(stem=False)
+    tagger = HindiTaggerViterbiMerge()
     tagger_stem = HindiTagger(stem=True)
 
     print("Prediction without stem:")

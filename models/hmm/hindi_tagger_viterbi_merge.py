@@ -142,13 +142,7 @@ class HindiTagger:
 
             prev_column[0][t] = None
 
-        # cnt = 0
-        # cnt1 = 0
         for idx in range(len(vakya)):
-            # if(self.p_word.get(vakya[idx])):
-            #     cnt1 += 1
-            # else :
-            #     cnt += 1
             for t in self.p_tag:
                 for t_dash in self.p_tag:
                     prev_prob = 0
@@ -162,8 +156,7 @@ class HindiTagger:
                         prev_column[idx][t] = t_dash
 
         max_prob = max(viterbi_table[idx], key=viterbi_table[idx].get)
-        # print(f"cnt {cnt}")
-        # print (f"cnt1 {cnt1}")
+
         seq = []
         itr = max_prob
         while itr is not None:
@@ -173,191 +166,25 @@ class HindiTagger:
         seq = seq[::-1]
         return seq
 
-    def hmm_bi_gram(self):
+    def hmm_bi_gram(self, vakya):
         inner_p_tag = {}
         index = 0
         for key in self.p_tag.keys():
             inner_p_tag[key] = index
             index += 1
 
-        cm = []
-
-        for tag_dict_index in range(len(inner_p_tag.keys())):
-            tnt = []
-            for j in range(index):
-                tnt.append(0)
-            cm.append(tnt)
-
         word_count = 0
-        sentence_count = 0
 
-        # SYM = ['।','.', ',', '-', '"', '!', '/']
 
-        for vakya in tqdm(self.process_input_file(self.test_file_name)):
-            word_count += len(vakya)
-            words = [shabd[0] for shabd in vakya]
+        word_count += len(vakya)
+        words = [shabd[0] for shabd in vakya]
 
-            # if(sentence_count < 5):
-            #     print(sentence_count)
-            #     print(vakya)
-            #     print(words)
-            #     print("--------------")
+        predicted_tags = self.VITERBI(words)
+        
+        return predicted_tags
 
-            predicted_tags = self.VITERBI(words)
-            for i in range(len(vakya)):
-                tag_predicted = predicted_tags[i]
-                # if(vakya[i][0].isnumeric()) :
-                #     tag_predicted = "QCC"
-
-                # for j in SYM :
-                #     if(vakya[i][0] == j) :
-                #         tag_predicted = "SYM"
-                #         break
-
-                # if "-" in vakya[i][0] :
-                #     tag_predicted = "RDP"
-
-                tag = vakya[i][1]
-                cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
-
-            sentence_count += 1    
-            # break
-
-        pred_actual = 0
-        for i in range(len(inner_p_tag)):
-            pred_actual += cm[i][i]
-
-        tags_list = []
-        for i in inner_p_tag :
-            tags_list.append(i)
-
-        print(pred_actual, word_count)
-        print("Test Accuracy : ", pred_actual/word_count)
-        print()
-        print("Confusion Matrix : ")
-        for i in range(len(cm)) :
-            print(tags_list[i], end = "")
-            print((5 - len(tags_list[i]))*" ", end = "")
-            for j in range(len(cm[0])) :
-                leng = 0
-                if(cm[i][j] != 0) :
-                    leng = int(math.log10(cm[i][j]))
-                print((4 - leng)*" ", end = "")
-                print(cm[i][j], end = " ")
-            print()
-
-        print()
-
-        """
-        Accuracy Measures
-        """
-
-        recall = []
-        precision = []
-        f_score = []
-
-        pred_actual = 0
-        for i in range(len(inner_p_tag)):
-            pred_actual += cm[i][i]
-
-        true_positive = 0
-        false_negative = 0
-        false_positive = 0
-        total_true_positive = 0
-        total_false_positive = 0
-        total_false_negative = 0
-
-        total_recall = 0
-        total_precision = 0
-
-        for i in range(len(inner_p_tag)):
-            true_positive = cm[i][i]
-            false_positive = 0
-            false_negative = 0
-
-            for j in range(len(inner_p_tag)):
-                if(i == j) :
-                    continue
-
-                false_negative += cm[i][j]
-                false_positive += cm[j][i]
-
-            total_true_positive += true_positive
-            total_false_positive += false_positive
-            total_false_negative += false_negative
-
-            if(true_positive == 0) :
-                recall.append(0)
-                precision.append(0)
-                f_score.append(0)
-            else :
-                recall.append(true_positive/(true_positive + false_negative))
-                precision.append(true_positive/(true_positive + false_positive))
-                f_score.append((2*recall[i]*precision[i])/(recall[i] + precision[i]))
-            
-            total_recall += recall[i]
-            total_precision += precision[i]
-
-        micro_precision = total_true_positive/(total_true_positive + total_false_positive)
-        micro_recall = total_true_positive/(total_true_positive + total_false_negative)
-        micro_f_score = ((2*micro_precision*micro_recall)/(micro_precision + micro_recall))
-
-        macro_precision = total_precision/31
-        macro_recall = total_recall/31
-        macro_f_score = ((2*macro_precision*macro_recall)/(macro_precision + macro_recall))
-
-        # print("Test Accuracy : ", pred_actual/word_count)
-        # print()
-        # print("Confusion Matrix : ")
-        # for i in range(len(cm)) :
-        #     for j in range(len(cm[0])) :
-        #         leng = 0
-        #         if(cm[i][j] != 0) :
-        #             leng = int(math.log10(cm[i][j]))
-        #         print((4 - leng)*" ", end = "")
-        #         print(cm[i][j], end = " ")
-        #     print()
-
-        # print()
-
-        print ("Recall for each tag : ")
-        cnt = 0
-        for i in (inner_p_tag):
-            print(i, " : ", recall[cnt])
-            cnt += 1
-	
-        print()
-
-        print ("Precision for each tag : ")
-        cnt = 0
-        for i in (inner_p_tag):
-            print(i, " : ", precision[cnt])
-            cnt += 1
-
-        print()
-
-        print ("F-measure for each tag : ")
-        cnt = 0
-        for i in (inner_p_tag):
-            print(i, " : ", f_score[cnt])
-            cnt += 1
-
-        print()
-
-        print ("Micro Measures : ")
-        print ("Recall : ", micro_recall)
-        print ("Precision : ", micro_precision)
-        print ("F-measure : ", micro_f_score)
-
-        print()
-
-        print ("Macro Measures : ")
-        print ("Recall : ", macro_recall)
-        print ("Precision : ", macro_precision)
-        print ("F-measure : ", macro_f_score)
-
-    def predict(self):
-        self.hmm_bi_gram()
+    def predict(self, vakya):
+        return self.hmm_bi_gram(vakya)
 
 
 def main():
