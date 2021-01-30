@@ -58,7 +58,7 @@ class HindiTagger:
 #             5: ["ाएंगी", "ाएंगे", "ाऊंगी", "ाऊंगा", "ाइयाँ", "ाइयों", "ाइयां", "अक्कड़","तव्य:","निष्ठ"],
 # }
 
-# ret -> stem, suff, indicator
+# ret -> stem, suffix, indicator
         ret = []
 
         for L in (5,4,3,2,1):
@@ -109,14 +109,14 @@ class HindiTagger:
         vakya_list = self.process_input_file(self.train_file_name, train_data=True)
         cnt = 0
         for word_list in vakya_list:
-            if(cnt == 0) :
-                    print()
-                    for word, tag in word_list :
-                        print(word, end = " ")
-                    print()
-                    for word, tag in word_list :
-                        print(self.generate_stem_words(word)[0], end = " ")
-                    print()
+            # if(cnt == 0) :
+            #         print()
+            #         for word, tag in word_list :
+            #             print(word, end = " ")
+            #         print()
+            #         for word, tag in word_list :
+            #             print(self.generate_stem_words(word)[0], end = " ")
+            #         print()
                 
             cnt += 1
 
@@ -387,6 +387,38 @@ class HindiTagger:
         print()
 
         tag_fr = [56373,56198,29915,22375,18668,18086,15632,11914,11567,10491,5918,4761,3948,3845,3815,2185,1795,1236,553,448,322,312,283,185,110,58,21,18,14,8,3]
+        fs = [0.7635327635327636,
+ 0.6707641876664617,
+ 0.9096424702058505,
+  0.525,
+0.7294452347083927,
+0.7828409805153992,
+0.48282931829830855,
+0.8262266355140188,
+ 0.9954432477216238,
+ 0.8848948374760994,
+ 0.43611111111111117,
+  0.8782090778393922,
+0.741717791411043,
+  0.5868995633187772,
+ 0.90927624872579,
+0.8251599147121534,
+  0,
+0.7865546218487394,
+ 0.18823529411764706,
+0.4727272727272727,
+ 0.667953667953668,
+0.6103286384976525,
+ 0.08333333333333334,
+ 0,
+0.5,
+ 0,
+ 0.13055181695827725,
+ 0.0425531914893617,
+  0,
+ 0,
+ 0]
+
 
         total_fr = 0
         for i in tag_fr :
@@ -395,7 +427,7 @@ class HindiTagger:
         f1_score = 0
 
         for i in range(len(tag_fr)):
-            f1_score += (tag_fr[i]*f_score[i])
+            f1_score += (tag_fr[i]*fs[i])
 
         f1_score /= total_fr
 

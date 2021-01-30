@@ -1,10 +1,12 @@
 from decimal import Decimal as dec
 from pathlib import Path
 from tqdm import tqdm
+import math
+import csv
 
 class HindiTagger:
-    train_file_name = Path(__file__).parent / '../../dataset/hmm/hmm_train_2.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/hmm/hmm_test_2.csv'
+    train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -133,6 +135,133 @@ class HindiTagger:
 
         print(pred_actual, word_count)
         print(cm)
+
+        """
+        Accuracy Measures
+        """
+
+        recall = []
+        precision = []
+        f_score = []
+
+        pred_actual = 0
+        for i in range(len(inner_p_tag)):
+            pred_actual += cm[i][i]
+
+        true_positive = 0
+        false_negative = 0
+        false_positive = 0
+        total_true_positive = 0
+        total_false_positive = 0
+        total_false_negative = 0
+
+        total_recall = 0
+        total_precision = 0
+
+        for i in range(len(inner_p_tag)):
+            true_positive = cm[i][i]
+            false_positive = 0
+            false_negative = 0
+
+            for j in range(len(inner_p_tag)):
+                if(i == j) :
+                    continue
+
+                false_negative += cm[i][j]
+                false_positive += cm[j][i]
+
+            total_true_positive += true_positive
+            total_false_positive += false_positive
+            total_false_negative += false_negative
+
+            if(true_positive == 0) :
+                recall.append(0)
+                precision.append(0)
+                f_score.append(0)
+            else :
+                recall.append(true_positive/(true_positive + false_negative))
+                precision.append(true_positive/(true_positive + false_positive))
+                f_score.append((2*recall[i]*precision[i])/(recall[i] + precision[i]))
+            
+            total_recall += recall[i]
+            total_precision += precision[i]
+
+        micro_precision = total_true_positive/(total_true_positive + total_false_positive)
+        micro_recall = total_true_positive/(total_true_positive + total_false_negative)
+        micro_f_score = ((2*micro_precision*micro_recall)/(micro_precision + micro_recall))
+
+        macro_precision = total_precision/22
+        macro_recall = total_recall/22
+        macro_f_score = ((2*macro_precision*macro_recall)/(macro_precision + macro_recall))
+
+        print("Test Accuracy : ", pred_actual/word_count)
+        print(pred_actual, word_count)
+        print()
+        print("Confusion Matrix : ")
+        for i in range(len(cm)) :
+            for j in range(len(cm[0])) :
+                leng = 0
+                if(cm[i][j] != 0) :
+                    leng = int(math.log10(cm[i][j]))
+                print((4 - leng)*" ", end = "")
+                print(cm[i][j], end = " ")
+            print()
+
+        print()
+
+        print ("Recall for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", recall[cnt])
+            cnt += 1
+    
+        print()
+
+        print ("Precision for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", precision[cnt])
+            cnt += 1
+
+        print()
+
+        print ("F-measure for each tag : ")
+        cnt = 0
+        for i in (inner_p_tag):
+            print(i, " : ", f_score[cnt])
+            cnt += 1
+
+        print()
+
+        tag_fr = [56373,56198,29915,22375,18668,18086,15632,11914,11567,10491,5918,4761,3948,3845,3815,2185,1795,1236,553,448,322,312,283,185,110,58,21,18,14,8,3]
+
+        total_fr = 0
+        for i in tag_fr :
+            total_fr += i
+
+        f1_score = 0
+
+        for i in range(len(tag_fr)):
+            f1_score += (tag_fr[i]*f_score[i])
+
+        f1_score /= total_fr
+
+        print("F1-Score : ", f1_score)
+
+        print()
+
+        print ("Micro Measures : ")
+        print ("Recall : ", micro_recall)
+        print ("Precision : ", micro_precision)
+        print ("F-measure : ", micro_f_score)
+
+        print()
+
+        print ("Macro Measures : ")
+        print ("Recall : ", macro_recall)
+        print ("Precision : ", macro_precision)
+        print ("F-measure : ", macro_f_score)
+
 
     def predict(self):
         self.hmm_bi_gram()
