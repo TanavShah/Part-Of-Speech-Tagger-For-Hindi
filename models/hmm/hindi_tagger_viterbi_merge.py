@@ -344,6 +344,23 @@ class HindiTagger:
 
         print()
 
+        tag_fr = [56373,56198,29915,22375,18668,18086,15632,11914,11567,10491,5918,4761,3948,3845,3815,2185,1795,1236,553,448,322,312,283,185,110,58,21,18,14,8,3]
+
+        total_fr = 0
+        for i in tag_fr :
+            total_fr += i
+
+        f1_score = 0
+
+        for i in range(len(tag_fr)):
+            f1_score += (tag_fr[i]*f_score[i])
+
+        f1_score /= total_fr
+
+        print("F1-Score : ", f1_score)
+
+        print()
+
         print ("Micro Measures : ")
         print ("Recall : ", micro_recall)
         print ("Precision : ", micro_precision)
