@@ -4,7 +4,7 @@ from tqdm import tqdm
 import csv
 import math
 
-class HindiTagger:
+class HindiTaggerDecisiveViterbi:
     train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
     test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
 
@@ -20,21 +20,6 @@ class HindiTagger:
         self.train()
 
     def generate_stem_words(self, word):
-        
-        # suffixes = {
-        #     1: [u"ो",u"े",u"ू",u"ु",u"ी",u"ि",u"ा",u"क"],
-        #     2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
-        #     3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
-        #     4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
-        #     5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
-
-        # suffixes = {
-        #     1: [u"ो",u"ू",u"ु",u"ी",u"ि",u"ा"],
-        #     2: [u"कर",u"ाओ",u"िए",u"ाई",u"ाए",u"ने",u"नी",u"ना",u"ते",u"ीं",u"ती",u"ता",u"ाँ",u"ां",u"ों",u"ें",u"ाऊ",u"िक",u"ीय",u"ीच",u"ेद",u"ेय",u"कर",u"जी",u"तः",u"ता",u"त्व",u"पन"],
-        #     3: [u"ाकर",u"ाइए",u"ाईं",u"ाया",u"ेगी",u"ेगा",u"ोगी",u"ोगे",u"ाने",u"ाना",u"ाते",u"ाती",u"ाता",u"तीं",u"ाओं",u"ाएं",u"ुओं",u"ुएं",u"ुआं",u"ाना",u"ावा",u"िका",u"ियत",u"िया",u"ीला",u"कार",u"जनक",u"दान",u"दार",u"बाज़",u"वाद"],
-        #     4: [u"ाएगी",u"ाएगा",u"ाओगी",u"ाओगे",u"एंगी",u"ेंगी",u"एंगे",u"ेंगे",u"ूंगी",u"ूंगा",u"ातीं",u"नाओं",u"नाएं",u"ताओं",u"ताएं",u"ियाँ",u"ियों",u"ियां",u"ात्मक",u"ीकरण",u"कारक",u"गर्दी",u"गिरी",u"वादी",u"वाला",u"वाले",u"शाली",u"शुदा"],
-        #     5: [u"ाएंगी",u"ाएंगे",u"ाऊंगी",u"ाऊंगा",u"ाइयाँ",u"ाइयों",u"ाइयां"] }
-
         suffixes = {
             1: ["ो", "े", "ू", "ु", "ी", "ि", "ा"],
             2: ["कर", "ाओ", "िए", "ाई", "ाए", "ने", "नी", "ना", "ते", "ीं", "ती", "ता", "ाँ", "ां", "ों", "ें"],
@@ -167,20 +152,9 @@ class HindiTagger:
         return seq
 
     def hmm_bi_gram(self, vakya):
-        inner_p_tag = {}
-        index = 0
-        for key in self.p_tag.keys():
-            inner_p_tag[key] = index
-            index += 1
-
-        word_count = 0
-
-
-        word_count += len(vakya)
         words = [shabd[0] for shabd in vakya]
-
         predicted_tags = self.VITERBI(words)
-        
+
         return predicted_tags
 
     def predict(self, vakya):
@@ -188,9 +162,7 @@ class HindiTagger:
 
 
 def main():
-    tagger = HindiTagger()
-    tagger.predict()
-
+    tagger = HindiTaggerDecisiveViterbi()
 
 if __name__ == "__main__":
     main()

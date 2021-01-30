@@ -1,10 +1,9 @@
 from decimal import Decimal as dec
 from pathlib import Path
-from tqdm import tqdm
 
-class HindiTagger:
-    train_file_name = Path(__file__).parent / '../../dataset/hmm/hmm_train_2.csv'
-    test_file_name = Path(__file__).parent /'../../dataset/hmm/hmm_test_2.csv'
+class HindiTaggerFullStem:
+    train_file_name = Path(__file__).parent / '../../dataset/stemming/train_set.csv'
+    test_file_name = Path(__file__).parent /'../../dataset/stemming/test_set.csv'
 
     p_word_tag = {}
     p_word = {}
@@ -14,6 +13,23 @@ class HindiTagger:
 
     def __init__(self):
         self.train()
+
+    def generate_stem_words(self, word):
+        suffixes = {
+            1: ["ो", "े", "ू", "ु", "ी", "ि", "ा"],
+            2: ["कर", "ाओ", "िए", "ाई", "ाए", "ने", "नी", "ना", "ते", "ीं", "ती", "ता", "ाँ", "ां", "ों", "ें"],
+            3: ["ाकर", "ाइए", "ाईं", "ाया", "ेगी", "ेगा", "ोगी", "ोगे", "ाने", "ाना", "ाते", "ाती", "ाता", "तीं", "ाओं", "ाएं", "ुओं", "ुएं", "ुआं"],
+            4: ["ाएगी", "ाएगा", "ाओगी", "ाओगे", "एंगी", "ेंगी", "एंगे", "ेंगे", "ूंगी", "ूंगा", "ातीं", "नाओं", "नाएं", "ताओं", "ताएं", "ियाँ", "ियों", "ियां"],
+            5: ["ाएंगी", "ाएंगे", "ाऊंगी", "ाऊंगा", "ाइयाँ", "ाइयों", "ाइयां"]
+        }
+        for L in (5,4,3,2,1):
+            if(len(word) >= L):
+                for suf in suffixes[L]:
+                    if(word.endswith(suf) and word!=suf):
+                        return word[:-L]
+
+        return word
+
 
     def process_input_file(self, file_name, train_data=False):
         vakya_list = []
@@ -37,16 +53,17 @@ class HindiTagger:
         return vakya_list
 
     def train(self):
-
         vakya_list = self.process_input_file(self.train_file_name, train_data=True)
         for word_list in vakya_list:
             for word, tag in word_list:
-                self.p_word[word] = self.p_word.get(word, 0) + 1
+                stemmed_word = self.generate_stem_words(word)
+                self.p_word[stemmed_word] = self.p_word.get(stemmed_word, 0) + 1
                 self.p_tag[tag] = self.p_tag.get(tag, 0) + 1
-                self.p_word_tag[f"{word}_{tag}"] = self.p_word_tag.get(f"{word}_{tag}", 0) + 1
+                self.p_word_tag[f"{stemmed_word}_{tag}"] = self.p_word_tag.get(f"{stemmed_word}_{tag}", 0) + 1
 
         for tag in self.p_tag:
             self.cnt += dec(self.dict_transition.get(f"{tag}_start", 0))
+
 
     def transition_prob(self, tag, prev_tag):
         if prev_tag == "start":
@@ -56,7 +73,7 @@ class HindiTagger:
 
 
     """
-    Smmothing for new words
+    Smoothing for new words
     """
 
     def emission_prob(self, word, tag):
@@ -101,47 +118,10 @@ class HindiTagger:
         seq = seq[::-1]
         return seq
 
-    def hmm_bi_gram(self):
-        inner_p_tag = {}
-        index = 0
-        for key in self.p_tag.keys():
-            inner_p_tag[key] = index
-            index += 1
+    def hmm_bi_gram(self, vakya):
+        words = [self.generate_stem_words(tup[0]) for tup in vakya]
+        predicted_tags = self.VITERBI(words)
+        return predicted_tags
 
-        cm = []
-
-        for tag_dict_index in range(len(inner_p_tag.keys())):
-            tnt = []
-            for j in range(index):
-                tnt.append(0)
-            cm.append(tnt)
-
-        word_count = 0
-
-        for vakya in tqdm(self.process_input_file(self.test_file_name)):
-            word_count += len(vakya)
-            words = [shabd[0] for shabd in vakya]
-            predicted_tags = self.VITERBI(words)
-            for i in range(len(vakya)):
-                tag_predicted = predicted_tags[i]
-                tag = vakya[i][1]
-                cm[inner_p_tag[tag]][inner_p_tag[tag_predicted]] += 1
-
-        pred_actual = 0
-        for i in range(len(inner_p_tag)):
-            pred_actual += cm[i][i]
-
-        print(pred_actual, word_count)
-        print(cm)
-
-    def predict(self):
-        self.hmm_bi_gram()
-
-
-def main():
-    tagger = HindiTagger()
-    tagger.predict()
-
-
-if __name__ == "__main__":
-    main()
+    def predict(self, vakya):
+        return self.hmm_bi_gram(vakya)
